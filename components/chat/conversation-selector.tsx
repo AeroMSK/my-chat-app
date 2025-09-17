@@ -7,7 +7,7 @@ import { useConversations } from "@/hooks/use-conversations"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { MessageCircle, Users } from "lucide-react"
+import { MessageCircle, Users, RefreshCw, Plus } from "lucide-react"
 import type { User } from "@/lib/users"
 import type { Conversation } from "@/lib/conversations"
 import { UserService } from "@/lib/users"
@@ -19,9 +19,11 @@ interface ConversationSelectorProps {
 
 export function ConversationSelector({ onConversationSelect, selectedConversationId }: ConversationSelectorProps) {
   const { user } = useAuth()
-  const { users } = useUsers()
+  const { users, refetch } = useUsers()
   const { conversations, createOrGetConversation } = useConversations()
   const [activeTab, setActiveTab] = useState<"conversations" | "users">("conversations")
+  const [isCreatingTestUser, setIsCreatingTestUser] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   useEffect(() => {
     const testDatabase = async () => {
@@ -47,6 +49,50 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
     "[v0] Filtered users (excluding current):",
     users.filter((u) => u.userId !== user?.$id),
   )
+
+  const createTestUser = async () => {
+    if (!user) return
+
+    setIsCreatingTestUser(true)
+    try {
+      console.log("[v0] Creating test user manually...")
+
+      // Create a test user entry
+      const testUserData = {
+        userId: `test-${Date.now()}`,
+        username: `TestUser${Math.floor(Math.random() * 1000)}`,
+        email: `test${Math.floor(Math.random() * 1000)}@example.com`,
+      }
+
+      console.log("[v0] Test user data:", testUserData)
+
+      const createdUser = await UserService.createOrUpdateUser(testUserData)
+      console.log("[v0] Test user created successfully:", createdUser)
+
+      // Refresh the users list
+      await refetch()
+
+      alert("Test user created successfully! Check the console for details.")
+    } catch (error) {
+      console.error("[v0] Failed to create test user:", error)
+      alert(`Failed to create test user: ${error.message}`)
+    } finally {
+      setIsCreatingTestUser(false)
+    }
+  }
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true)
+    try {
+      console.log("[v0] Manually refreshing users...")
+      await refetch()
+      console.log("[v0] Users refreshed successfully")
+    } catch (error) {
+      console.error("[v0] Failed to refresh users:", error)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   const handleUserSelect = async (selectedUser: User) => {
     if (!user || selectedUser.userId === user.$id) return
@@ -156,6 +202,31 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
           </div>
         ) : (
           <div className="space-y-1 p-2">
+            <div className="space-y-2 mb-4">
+              <div className="flex gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="flex-1 bg-transparent"
+                >
+                  <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
+                  Refresh Users
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={createTestUser}
+                  disabled={isCreatingTestUser}
+                  className="flex-1 bg-transparent"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  {isCreatingTestUser ? "Creating..." : "Create Test User"}
+                </Button>
+              </div>
+            </div>
+
             <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded mb-2 space-y-1">
               <p className="font-medium">Debug Info:</p>
               <p>Total users loaded: {users.length}</p>
@@ -178,10 +249,11 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
                 <div className="mt-4 p-3 bg-muted/30 rounded text-xs text-left">
                   <p className="font-medium mb-2">Troubleshooting:</p>
                   <ul className="space-y-1 text-left">
-                    <li>1. Check browser console for errors</li>
-                    <li>2. Verify Appwrite database connection</li>
-                    <li>3. Ensure users are being created during registration</li>
-                    <li>4. Check database permissions in Appwrite console</li>
+                    <li>1. Try the "Create Test User" button above</li>
+                    <li>2. Check browser console for errors</li>
+                    <li>3. Verify Appwrite database connection</li>
+                    <li>4. Ensure users are being created during registration</li>
+                    <li>5. Check database permissions in Appwrite console</li>
                   </ul>
                 </div>
               </div>
