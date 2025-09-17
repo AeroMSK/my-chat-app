@@ -1,6 +1,5 @@
 "use client"
 
-
 import { useState, useEffect } from "react"
 import { useAuth } from "@/hooks/use-auth"
 import { useUsers } from "@/hooks/use-users"
@@ -25,6 +24,7 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
   const [activeTab, setActiveTab] = useState<"conversations" | "users">("conversations")
   const [isCreatingTestUser, setIsCreatingTestUser] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [isCreatingCurrentUser, setIsCreatingCurrentUser] = useState(false)
 
   useEffect(() => {
     const testDatabase = async () => {
@@ -79,6 +79,37 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
       alert(`Failed to create test user: ${error.message}`)
     } finally {
       setIsCreatingTestUser(false)
+    }
+  }
+
+  const createCurrentUserProfile = async () => {
+    if (!user) return
+
+    setIsCreatingCurrentUser(true)
+    try {
+      console.log("[v0] Manually creating current user profile...")
+      console.log("[v0] Current user data:", {
+        id: user.$id,
+        name: user.name,
+        email: user.email,
+      })
+
+      const createdUser = await UserService.createOrUpdateUser({
+        userId: user.$id,
+        username: user.name,
+        email: user.email,
+      })
+      console.log("[v0] Current user profile created successfully:", createdUser)
+
+      // Refresh the users list
+      await refetch()
+
+      alert("Current user profile created successfully! Check the console for details.")
+    } catch (error) {
+      console.error("[v0] Failed to create current user profile:", error)
+      alert(`Failed to create current user profile: ${error.message}`)
+    } finally {
+      setIsCreatingCurrentUser(false)
     }
   }
 
@@ -226,6 +257,16 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
                   {isCreatingTestUser ? "Creating..." : "Create Test User"}
                 </Button>
               </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={createCurrentUserProfile}
+                disabled={isCreatingCurrentUser}
+                className="w-full bg-transparent"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {isCreatingCurrentUser ? "Creating..." : "Create My Profile"}
+              </Button>
             </div>
 
             <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded mb-2 space-y-1">
@@ -236,7 +277,7 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
               <p className="text-orange-600">Check browser console (F12) for detailed logs</p>
               {users.length > 0 && (
                 <div className="mt-2 p-2 bg-background/50 rounded text-xs">
-                  <p className="font-medium">Sample user data:</p>
+                  <p className="font-medium mb-2">Sample user data:</p>
                   <pre className="text-xs overflow-x-auto">{JSON.stringify(users[0], null, 2)}</pre>
                 </div>
               )}
