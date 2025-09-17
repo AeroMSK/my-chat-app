@@ -22,17 +22,6 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
   const { conversations, createOrGetConversation } = useConversations()
   const [activeTab, setActiveTab] = useState<"conversations" | "users">("conversations")
 
-  console.log("[v0] ConversationSelector - Current user:", user?.$id)
-  console.log("[v0] ConversationSelector - All users:", users.length)
-  console.log(
-    "[v0] ConversationSelector - Users data:",
-    users.map((u) => ({
-      username: u.username,
-      userId: u.userId,
-      isOnline: u.isOnline,
-    })),
-  )
-
   const handleUserSelect = async (selectedUser: User) => {
     if (!user || selectedUser.userId === user.$id) return
 
@@ -141,24 +130,11 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
           </div>
         ) : (
           <div className="space-y-1 p-2">
-            {console.log(
-              "[v0] Rendering users tab, filtered users:",
-              users.filter((u) => u.userId !== user?.$id).length,
-            )}
-
             {users.filter((u) => u.userId !== user?.$id).length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No other users online</p>
+                <p>No other users found</p>
                 <p className="text-sm">Create another account to test messaging!</p>
-                <div className="mt-4 p-3 bg-muted/50 rounded-lg text-xs">
-                  <p>
-                    <strong>Debug Info:</strong>
-                  </p>
-                  <p>Total users loaded: {users.length}</p>
-                  <p>Current user ID: {user?.$id}</p>
-                  <p>Check browser console for more details</p>
-                </div>
               </div>
             ) : (
               users
