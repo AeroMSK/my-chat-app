@@ -130,22 +130,33 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       try {
         console.log("[v0] Creating user profile in database...")
+        console.log("[v0] Profile data:", {
+          userId: currentUser.$id,
+          username: currentUser.name,
+          email: currentUser.email,
+        })
+
         const userProfile = await UserService.createOrUpdateUser({
           userId: currentUser.$id,
           username: currentUser.name,
           email: currentUser.email,
         })
         console.log("[v0] User profile created successfully:", userProfile.$id)
+        console.log("[v0] Full profile data:", userProfile)
       } catch (userError) {
         console.error("[v0] CRITICAL: User profile creation failed during registration!")
         console.error("[v0] Error details:", userError)
+        console.error("[v0] Error message:", userError.message)
+        console.error("[v0] Error code:", userError.code)
         console.error("[v0] User account was created but profile creation failed")
         console.error("[v0] This means the user can login but won't appear in the chat")
 
         throw new Error(
           `Registration completed but profile creation failed: ${userError.message}\n\n` +
             "Your account was created successfully, but there was an issue setting up your profile. " +
-            "Please try logging in again, or contact support if the issue persists.",
+            "Please check the browser console for detailed error information. " +
+            "You can try logging in again, or contact support if the issue persists.\n\n" +
+            "Debug info: Check console for Appwrite collection configuration errors.",
         )
       }
 
