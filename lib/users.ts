@@ -22,6 +22,7 @@ export class UserService {
   // Create or update user profile
   static async createOrUpdateUser(data: CreateUserData): Promise<User> {
     try {
+      console.log("[v0] Creating/updating user:", data)
       const now = new Date().toISOString()
 
       // Try to find existing user first
@@ -29,18 +30,22 @@ export class UserService {
         Query.equal("userId", data.userId),
       ])
 
+      console.log("[v0] Existing users found:", existingUsers.documents.length)
+
       if (existingUsers.documents.length > 0) {
         // Update existing user
+        console.log("[v0] Updating existing user...")
         const user = await databases.updateDocument(DATABASE_ID, USERS_COLLECTION_ID, existingUsers.documents[0].$id, {
           username: data.username,
           email: data.email,
           isOnline: true,
           lastSeen: now,
-          updatedAt: now, // Add updatedAt field
         })
+        console.log("[v0] User updated successfully:", user)
         return user as User
       } else {
         // Create new user
+        console.log("[v0] Creating new user...")
         const user = await databases.createDocument(
           DATABASE_ID,
           USERS_COLLECTION_ID,
@@ -51,8 +56,6 @@ export class UserService {
             email: data.email,
             isOnline: true,
             lastSeen: now,
-            createdAt: now, // Add required createdAt field
-            updatedAt: now, // Add updatedAt field
           },
           [
             Permission.read(Role.any()),
@@ -60,10 +63,16 @@ export class UserService {
             Permission.delete(Role.user(data.userId)),
           ],
         )
+        console.log("[v0] User created successfully:", user)
         return user as User
       }
     } catch (error) {
-      console.error("Error creating/updating user:", error)
+      console.error("[v0] Error creating/updating user:", error)
+      console.error("[v0] Error details:", {
+        message: error.message,
+        code: error.code,
+        type: error.type,
+      })
       throw error
     }
   }
@@ -72,28 +81,27 @@ export class UserService {
   static async getOnlineUsers(): Promise<User[]> {
     try {
       console.log("[v0] Fetching users from database...")
+      console.log("[v0] Database ID:", DATABASE_ID)
+      console.log("[v0] Users Collection ID:", USERS_COLLECTION_ID)
 
       // Get all users first to debug
       const allUsersResponse = await databases.listDocuments(DATABASE_ID, USERS_COLLECTION_ID, [
         Query.orderDesc("lastSeen"),
       ])
 
+      console.log("[v0] Database query successful!")
       console.log("[v0] Total users in database:", allUsersResponse.documents.length)
       console.log("[v0] All users:", allUsersResponse.documents)
 
-      // Filter for online users
-      const onlineUsers = allUsersResponse.documents.filter((user) => user.isOnline === true)
-      console.log("[v0] Online users:", onlineUsers.length)
-
-      // If no online users, return all users for testing
-      if (onlineUsers.length === 0 && allUsersResponse.documents.length > 0) {
-        console.log("[v0] No online users found, returning all users for testing")
-        return allUsersResponse.documents as User[]
-      }
-
-      return onlineUsers as User[]
+      console.log("[v0] Returning all users for debugging")
+      return allUsersResponse.documents as User[]
     } catch (error) {
-      console.error("Error fetching online users:", error)
+      console.error("[v0] Error fetching users:", error)
+      console.error("[v0] Error details:", {
+        message: error.message,
+        code: error.code,
+        type: error.type,
+      })
       throw error
     }
   }
@@ -110,7 +118,6 @@ export class UserService {
         await databases.updateDocument(DATABASE_ID, USERS_COLLECTION_ID, users.documents[0].$id, {
           isOnline,
           lastSeen: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
         })
       }
 
