@@ -71,12 +71,27 @@ export class UserService {
   // Get all online users
   static async getOnlineUsers(): Promise<User[]> {
     try {
-      const response = await databases.listDocuments(DATABASE_ID, USERS_COLLECTION_ID, [
-        Query.equal("isOnline", true),
+      console.log("[v0] Fetching users from database...")
+
+      // Get all users first to debug
+      const allUsersResponse = await databases.listDocuments(DATABASE_ID, USERS_COLLECTION_ID, [
         Query.orderDesc("lastSeen"),
       ])
 
-      return response.documents as User[]
+      console.log("[v0] Total users in database:", allUsersResponse.documents.length)
+      console.log("[v0] All users:", allUsersResponse.documents)
+
+      // Filter for online users
+      const onlineUsers = allUsersResponse.documents.filter((user) => user.isOnline === true)
+      console.log("[v0] Online users:", onlineUsers.length)
+
+      // If no online users, return all users for testing
+      if (onlineUsers.length === 0 && allUsersResponse.documents.length > 0) {
+        console.log("[v0] No online users found, returning all users for testing")
+        return allUsersResponse.documents as User[]
+      }
+
+      return onlineUsers as User[]
     } catch (error) {
       console.error("Error fetching online users:", error)
       throw error

@@ -22,6 +22,14 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
   const { conversations, createOrGetConversation } = useConversations()
   const [activeTab, setActiveTab] = useState<"conversations" | "users">("conversations")
 
+  console.log("[v0] Current user:", user?.$id)
+  console.log("[v0] All users loaded:", users.length)
+  console.log("[v0] Users data:", users)
+  console.log(
+    "[v0] Filtered users (excluding current):",
+    users.filter((u) => u.userId !== user?.$id),
+  )
+
   const handleUserSelect = async (selectedUser: User) => {
     if (!user || selectedUser.userId === user.$id) return
 
@@ -130,10 +138,17 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
           </div>
         ) : (
           <div className="space-y-1 p-2">
+            <div className="text-xs text-muted-foreground p-2 bg-muted/50 rounded mb-2">
+              <p>Debug Info:</p>
+              <p>Total users loaded: {users.length}</p>
+              <p>Current user ID: {user?.$id}</p>
+              <p>Check browser console for more details</p>
+            </div>
+
             {users.filter((u) => u.userId !== user?.$id).length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>No other users found</p>
+                <p>No other users online</p>
                 <p className="text-sm">Create another account to test messaging!</p>
               </div>
             ) : (
