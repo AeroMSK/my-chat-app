@@ -1,13 +1,13 @@
 import type React from "react"
 import type { Metadata } from "next"
-import { Geist as Geist_Sans, Manrope } from "next/font/google"
+import { Inter, Manrope } from "next/font/google"
 import { AuthProvider } from "@/components/auth-provider"
 import "./globals.css"
 
-const geistSans = Geist_Sans({
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-geist-sans",
+  variable: "--font-inter",
 })
 
 const manrope = Manrope({
@@ -29,7 +29,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`dark ${geistSans.variable} ${manrope.variable}`}>
+    <html lang="en" className={`dark ${inter.variable} ${manrope.variable}`}>
       <body className="font-sans antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>
