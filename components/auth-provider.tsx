@@ -67,8 +67,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
             username: currentUser.name,
             email: currentUser.email,
           })
+          console.log("[v0] User profile synchronized successfully")
         } catch (userError) {
           console.error("[v0] Error creating/updating user:", userError)
+          console.warn("[v0] User profile sync failed - this may affect chat functionality")
           // Don't throw - user is still authenticated even if profile update fails
         }
       }
@@ -91,8 +93,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
           username: currentUser.name,
           email: currentUser.email,
         })
+        console.log("[v0] User profile updated successfully on login")
       } catch (userError) {
         console.error("[v0] Error creating/updating user profile:", userError)
+        console.warn("[v0] Profile creation failed - this may affect chat functionality")
         // Don't throw - login was successful even if profile creation fails
       }
     } catch (error) {
@@ -125,15 +129,24 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(currentUser)
 
       try {
-        await UserService.createOrUpdateUser({
+        console.log("[v0] Creating user profile in database...")
+        const userProfile = await UserService.createOrUpdateUser({
           userId: currentUser.$id,
           username: currentUser.name,
           email: currentUser.email,
         })
-        console.log("[v0] User profile created successfully")
+        console.log("[v0] User profile created successfully:", userProfile.$id)
       } catch (userError) {
-        console.error("[v0] Error creating user profile:", userError)
-        // Don't throw - registration was successful even if profile creation fails
+        console.error("[v0] CRITICAL: User profile creation failed during registration!")
+        console.error("[v0] Error details:", userError)
+        console.error("[v0] User account was created but profile creation failed")
+        console.error("[v0] This means the user can login but won't appear in the chat")
+
+        throw new Error(
+          `Registration completed but profile creation failed: ${userError.message}\n\n` +
+            "Your account was created successfully, but there was an issue setting up your profile. " +
+            "Please try logging in again, or contact support if the issue persists.",
+        )
       }
 
       console.log("[v0] Registration completed successfully")
