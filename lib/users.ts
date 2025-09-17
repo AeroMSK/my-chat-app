@@ -71,13 +71,38 @@ export class UserService {
   // Get all online users
   static async getOnlineUsers(): Promise<User[]> {
     try {
+      console.log("[v0] Fetching online users from database...")
+
+      const allUsersResponse = await databases.listDocuments(DATABASE_ID, USERS_COLLECTION_ID, [
+        Query.orderDesc("lastSeen"),
+      ])
+      console.log("[v0] All users in database:", allUsersResponse.documents.length)
+      console.log(
+        "[v0] All users data:",
+        allUsersResponse.documents.map((u) => ({
+          username: u.username,
+          isOnline: u.isOnline,
+          lastSeen: u.lastSeen,
+        })),
+      )
+
       const response = await databases.listDocuments(DATABASE_ID, USERS_COLLECTION_ID, [
         Query.equal("isOnline", true),
         Query.orderDesc("lastSeen"),
       ])
+
+      console.log("[v0] Online users found:", response.documents.length)
+      console.log(
+        "[v0] Online users:",
+        response.documents.map((u) => ({
+          username: u.username,
+          isOnline: u.isOnline,
+        })),
+      )
+
       return response.documents as User[]
     } catch (error) {
-      console.error("Error fetching online users:", error)
+      console.error("[v0] Error fetching online users:", error)
       throw error
     }
   }
