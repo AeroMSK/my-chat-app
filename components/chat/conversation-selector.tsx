@@ -25,6 +25,7 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
   const [isCreatingTestUser, setIsCreatingTestUser] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isCreatingCurrentUser, setIsCreatingCurrentUser] = useState(false)
+  const [isTestingConnection, setIsTestingConnection] = useState(false)
 
   useEffect(() => {
     const testDatabase = async () => {
@@ -104,12 +105,45 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
       // Refresh the users list
       await refetch()
 
-      alert("Current user profile created successfully! Check the console for details.")
+      alert("Current user profile created successfully! Check console for details.")
     } catch (error) {
       console.error("[v0] Failed to create current user profile:", error)
       alert(`Failed to create current user profile: ${error.message}`)
     } finally {
       setIsCreatingCurrentUser(false)
+    }
+  }
+
+  const testAppwriteConnection = async () => {
+    setIsTestingConnection(true)
+    try {
+      console.log("[v0] Starting comprehensive Appwrite connection test...")
+
+      // Test 1: Basic database connection
+      console.log("[v0] Test 1: Testing basic database connection...")
+      await UserService.testDatabaseConnection()
+      console.log("[v0] ✅ Database connection successful")
+
+      // Test 2: Try to list documents (even if empty)
+      console.log("[v0] Test 2: Testing document listing...")
+      const result = await UserService.getAllUsers()
+      console.log("[v0] ✅ Document listing successful, found:", result.length, "users")
+
+      // Test 3: Try to create a simple test document
+      console.log("[v0] Test 3: Testing document creation...")
+      const testDoc = await UserService.createOrUpdateUser({
+        userId: `connection-test-${Date.now()}`,
+        username: "Connection Test",
+        email: "test@connection.com",
+      })
+      console.log("[v0] ✅ Document creation successful:", testDoc)
+
+      alert("✅ All connection tests passed! Check console for details.")
+    } catch (error) {
+      console.error("[v0] ❌ Connection test failed:", error)
+      alert(`❌ Connection test failed: ${error.message}`)
+    } finally {
+      setIsTestingConnection(false)
     }
   }
 
@@ -266,6 +300,16 @@ export function ConversationSelector({ onConversationSelect, selectedConversatio
               >
                 <Plus className="w-4 h-4 mr-2" />
                 {isCreatingCurrentUser ? "Creating..." : "Create My Profile"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={testAppwriteConnection}
+                disabled={isTestingConnection}
+                className="w-full bg-transparent border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${isTestingConnection ? "animate-spin" : ""}`} />
+                {isTestingConnection ? "Testing..." : "Test Connection"}
               </Button>
             </div>
 
