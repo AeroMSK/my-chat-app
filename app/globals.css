@@ -38,7 +38,7 @@
   --sidebar-accent-foreground: oklch(0.98 0 0); /* White text on sidebar accent */
   --sidebar-border: oklch(0.2 0.03 270); /* Dark purple sidebar border */
   --sidebar-ring: oklch(0.75 0.25 130 / 0.3); /* Green sidebar ring */
-  --font-geist-sans: "Geist Sans", sans-serif;
+  --font-inter: "Inter", sans-serif;
   --font-manrope: "Manrope", sans-serif;
 }
 
@@ -131,7 +131,7 @@
 
   /* Updated font classes for bold, modern typography */
   .font-heading {
-    font-family: var(--font-geist-sans);
+    font-family: var(--font-inter);
     font-weight: 900;
     letter-spacing: -0.025em;
   }
